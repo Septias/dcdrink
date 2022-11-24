@@ -6,6 +6,7 @@ let ready = $ref(false)
 let ready_players = $ref(0)
 
 const gameStore = useGameStore()
+const router = useRouter()
 
 function readyUp() {
   ready = true
@@ -16,9 +17,6 @@ function readyUp() {
   }, 'Player Ready')
 }
 
-const router = useRouter()
-
-api.start_listening()
 api.add_event_listener((_) => {
   ready_players += 1
   console.log(ready_players >= gameStore.players)
@@ -27,6 +25,7 @@ api.add_event_listener((_) => {
     router.push(`/games/${gameStore.currentGame}/game`)
   }
 }, EventType.PlayerReady)
+api.start_listening()
 
 onUnmounted(() => {
   api.stop_listening()

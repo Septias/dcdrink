@@ -7,7 +7,6 @@
   --blue: #889bfb;
 }
 
-
 html,
 body,
 #app {
@@ -22,8 +21,7 @@ body,
 }
 
 #nprogress .bar {
-  background: rgb(13,148,136);
-  opacity: 0.75;
+  background: var(--blue);
   position: fixed;
   z-index: 1031;
   top: 0;
