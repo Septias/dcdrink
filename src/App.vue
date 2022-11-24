@@ -25,7 +25,6 @@ useHead({
 document.addEventListener('keydown', (key) => {
   if (key.key === 's') {
     console.log('reset serial')
-
     last_serial.value = 0
   }
 })
