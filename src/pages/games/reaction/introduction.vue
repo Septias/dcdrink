@@ -17,15 +17,20 @@ function readyUp() {
 }
 
 const router = useRouter()
-const route = useRoute()
+
 api.start_listening()
 api.add_event_listener((_) => {
   ready_players += 1
   console.log(ready_players >= gameStore.players)
   if (ready_players >= gameStore.players) {
-    router.push(`/games/${route.query.game}/game`)
+    api.stop_listening()
+    router.push(`/games/${gameStore.currentGame}/game`)
   }
 }, EventType.PlayerReady)
+
+onUnmounted(() => {
+  api.stop_listening()
+})
 </script>
 
 <template lang="pug">

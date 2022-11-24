@@ -16,6 +16,7 @@ export enum GameType {
 export interface ReactionResult {
   failed: boolean
   time?: number
+  name: string
 }
 
 type PlayerResult = ReactionResult
@@ -43,15 +44,18 @@ interface Payload {
   eventType: EventType
   data: PayloadData
 }
-
-export class API {
-  event_listeners: Record<EventType, ((data: PayloadData) => void)[]> = {
+function empty_listeners() {
+  return {
     [EventType.PlayerJoined]: [],
     [EventType.PlayerLeft]: [],
     [EventType.GameStarted]: [],
     [EventType.PlayerReady]: [],
     [EventType.PlayerResult]: [],
   }
+}
+
+export class API {
+  event_listeners: Record<EventType, ((data: PayloadData) => void)[]> = empty_listeners()
 
   add_event_listener(cb: (payload: PayloadData) => void, event_type: EventType) {
     this.event_listeners[event_type].push(cb)
@@ -66,7 +70,13 @@ export class API {
   }
 
   start_listening() {
+    console.log('start listening from', last_serial.value)
     window.webxdc.setUpdateListener(this.handler.bind(this), last_serial.value)
+  }
+
+  stop_listening() {
+    this.event_listeners = empty_listeners()
+    window.webxdc.setUpdateListener(e => console.log('missed event: ', e), last_serial.value)
   }
 }
 

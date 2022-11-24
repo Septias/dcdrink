@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { PlayerResultEventData, ReactionResult } from '~/api'
 import { EventType, GameType } from '~/api'
+import { useGameStore } from '~/stores/game'
 
 const delay = Math.random() * 6 + 2
 let show_target = $ref(false)
@@ -10,13 +11,16 @@ setTimeout(() => {
   start_time = Date.now()
 }, delay * 1000)
 
+const router = useRouter()
+const gameStore = useGameStore()
+
 function clickHandler() {
   let data: ReactionResult
   if (show_target) {
-    data = { failed: false, time: Date.now() - start_time }
+    data = { failed: false, time: Date.now() - start_time, name: window.webxdc.selfName }
   }
   else {
-    data = { failed: true }
+    data = { failed: true, name: window.webxdc.selfName }
   }
 
   window.webxdc.sendUpdate({
@@ -28,10 +32,11 @@ function clickHandler() {
       } as PlayerResultEventData,
     },
   }, 'Reaction result')
+  router.push(`/games/${gameStore.currentGame}/conclusion`)
 }
 </script>
 
 <template lang="pug">
 div.h-full.w-full.p-4
-  .h-full.w-full.rounded(:class="show_target ? 'bg-pgeer' : 'bg-pred'" @click="clickHandler")
+  .h-full.w-full.rounded(:class="show_target ? 'bg-pgreen' : 'bg-pred'" @click="clickHandler")
 </template>
