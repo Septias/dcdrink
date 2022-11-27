@@ -17,12 +17,7 @@ onMounted(() => {
 
 const vis_change = () => {
   if (document.visibilityState === 'hidden') {
-    window.webxdc.sendUpdate({
-      payload: {
-        eventType: EventType.PlayerLeft,
-        data: { name: window.webxdc.selfName },
-      },
-    }, 'Player left')
+    api.sendUpdate(EventType.PlayerLeft, { name: window.webxdc.selfName }, '')
   }
 }
 document.addEventListener('visibilitychange', vis_change)

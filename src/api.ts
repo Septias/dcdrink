@@ -44,6 +44,13 @@ interface Payload {
   eventType: EventType
   data: PayloadData
 }
+
+interface DatedPayload {
+  eventType: EventType
+  data: PayloadData
+  ts: number
+}
+
 function empty_listeners() {
   return {
     [EventType.PlayerJoined]: [],
@@ -69,6 +76,10 @@ export class API {
     }
   }
 
+  catchup() {
+
+  }
+
   start_listening() {
     console.log('start listening from', last_serial.value)
     window.webxdc.setUpdateListener(this.handler.bind(this), last_serial.value)
@@ -77,6 +88,16 @@ export class API {
   stop_listening() {
     this.event_listeners = empty_listeners()
     window.webxdc.setUpdateListener(e => console.log('missed event: ', e), last_serial.value)
+  }
+
+  sendUpdate(eventType: EventType, data: PayloadData, msg = '') {
+    window.webxdc.sendUpdate({
+      payload: {
+        eventType,
+        data,
+        ts: Date.now(),
+      },
+    }, msg)
   }
 }
 
