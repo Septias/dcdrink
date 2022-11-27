@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import type { JoinEventData, StartGameEventData } from '~/api'
-import { EventType, GameType, api } from '~/api'
+import { EventType, GameType, api, is_start_game_event } from '~/api'
 import { useGameStore } from '~/stores/game'
 
 const players = ref([] as string[])
+const gameStore = useGameStore()
 
 // Player join/leave event handling
 onMounted(() => {
@@ -23,15 +24,10 @@ const vis_change = () => {
 document.addEventListener('visibilitychange', vis_change)
 
 function startGame() {
-  window.webxdc.sendUpdate({
-    payload: {
-      eventType: EventType.GameStarted,
-      data: { game: GameType.Reaction } as StartGameEventData,
-    },
-  }, 'Start game')
+  gameStore.king = window.webxdc.selfAddr
+  api.sendUpdate(EventType.GameStarted, { game: GameType.Reaction, king: window.webxdc.selfAddr } as StartGameEventData, 'Game Startet')
 }
 
-const gameStore = useGameStore()
 onUnmounted(() => {
   document.removeEventListener('visibilitychange', vis_change)
   gameStore.players = players.value.length
@@ -41,8 +37,11 @@ const router = useRouter()
 api.add_event_listener(data => players.value.push((data as JoinEventData).name), EventType.PlayerJoined)
 api.add_event_listener(data => players.value.splice(players.value.indexOf((data as JoinEventData).name), 1), EventType.PlayerLeft)
 api.add_event_listener((data) => {
-  gameStore.currentGame = (data as StartGameEventData).game
-  router.push(`/games/${(data as StartGameEventData).game}/introduction`)
+  if (is_start_game_event(data)) {
+    gameStore.king = data.king
+    gameStore.currentGame = data.game
+    router.push(`/games/${data.game}/introduction`)
+  }
 }, EventType.GameStarted)
 
 api.start_listening()

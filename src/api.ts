@@ -31,6 +31,11 @@ export interface LeaveEventData {
 
 export interface StartGameEventData {
   game: GameType
+  king: string
+}
+
+export function is_start_game_event(data: any): data is StartGameEventData {
+  return data.game && data.king
 }
 
 export interface PlayerResultEventData {
@@ -38,7 +43,7 @@ export interface PlayerResultEventData {
   data: PlayerResult
 }
 
-type PayloadData = JoinEventData | LeaveEventData | StartGameEventData | PlayerResultEventData
+type PayloadData = JoinEventData | LeaveEventData | StartGameEventData | PlayerResultEventData | undefined
 
 interface Payload {
   eventType: EventType
@@ -90,13 +95,13 @@ export class API {
     window.webxdc.setUpdateListener(e => console.log('missed event: ', e), last_serial.value)
   }
 
-  sendUpdate(eventType: EventType, data: PayloadData, msg = '') {
+  sendUpdate(eventType: EventType, data?: PayloadData, msg = '') {
     window.webxdc.sendUpdate({
       payload: {
         eventType,
         data,
         ts: Date.now(),
-      },
+      } as DatedPayload,
     }, msg)
   }
 }
