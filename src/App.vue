@@ -2,7 +2,7 @@
 // https://github.com/vueuse/head
 // you can use this to manipulate the document head in any components,
 
-import { last_serial } from './stores/game'
+import { api } from './api'
 
 // they will be rendered correctly in the html results with vite-ssg
 useHead({
@@ -25,7 +25,7 @@ useHead({
 document.addEventListener('keydown', (key) => {
   if (key.key === 's') {
     console.log('reset serial')
-    last_serial.value = 0
+    api.last_serial = 0
   }
 })
 </script>

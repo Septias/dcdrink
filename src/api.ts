@@ -1,4 +1,3 @@
-import { last_serial } from './stores/game'
 import type { ReceivedStatusUpdate } from './webxdc'
 
 export enum EventType {
@@ -7,6 +6,7 @@ export enum EventType {
   GameStarted,
   PlayerReady,
   PlayerResult,
+  NextGame,
 }
 
 export enum GameType {
@@ -29,12 +29,12 @@ export interface LeaveEventData {
   name: string
 }
 
-export interface StartGameEventData {
+export interface GameStartedEventData {
   game: GameType
   king: string
 }
 
-export function is_start_game_event(data: any): data is StartGameEventData {
+export function is_start_game_event(data: any): data is GameStartedEventData {
   return data.game && data.king
 }
 
@@ -43,7 +43,15 @@ export interface PlayerResultEventData {
   data: PlayerResult
 }
 
-type PayloadData = JoinEventData | LeaveEventData | StartGameEventData | PlayerResultEventData | undefined
+export interface NextGameEventData {
+  game: GameType
+}
+
+export function is_next_game_event_data(data: any): data is GameStartedEventData | NextGameEventData {
+  return data.game
+}
+
+type PayloadData = JoinEventData | LeaveEventData | GameStartedEventData | PlayerResultEventData | NextGameEventData | undefined
 
 interface Payload {
   eventType: EventType
@@ -63,11 +71,13 @@ function empty_listeners() {
     [EventType.GameStarted]: [],
     [EventType.PlayerReady]: [],
     [EventType.PlayerResult]: [],
+    [EventType.NextGame]: [],
   }
 }
 
 export class API {
   event_listeners: Record<EventType, ((data: PayloadData) => void)[]> = empty_listeners()
+  last_serial = 0
 
   add_event_listener(cb: (payload: PayloadData) => void, event_type: EventType) {
     this.event_listeners[event_type].push(cb)
@@ -75,24 +85,22 @@ export class API {
 
   handler(update: ReceivedStatusUpdate<Payload>) {
     const { payload, serial } = update
-    last_serial.value = serial
+    console.log(serial)
+    this.last_serial = serial
     for (const listener of this.event_listeners[payload.eventType]) {
       listener(payload.data)
     }
   }
 
-  catchup() {
-
-  }
-
   start_listening() {
-    console.log('start listening from', last_serial.value)
-    window.webxdc.setUpdateListener(this.handler.bind(this), last_serial.value)
+    console.log('start listening from', this.last_serial)
+    window.webxdc.setUpdateListener(this.handler.bind(this), this.last_serial)
   }
 
   stop_listening() {
+    console.log('stop listening')
     this.event_listeners = empty_listeners()
-    window.webxdc.setUpdateListener(e => console.log('missed event: ', e), last_serial.value)
+    window.webxdc.setUpdateListener(e => console.log('missed event: ', e), this.last_serial)
   }
 
   sendUpdate(eventType: EventType, data?: PayloadData, msg = '') {

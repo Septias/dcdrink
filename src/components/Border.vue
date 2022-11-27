@@ -26,9 +26,6 @@ api.add_event_listener((_) => {
     emit('allReady')
   }
 }, EventType.PlayerReady)
-
-onMounted(() => api.start_listening())
-onUnmounted(() => api.stop_listening())
 </script>
 
 <template lang="pug">

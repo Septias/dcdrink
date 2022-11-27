@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 import type { PlayerResultEventData, ReactionResult } from '~/api'
-import { EventType, GameType } from '~/api'
+import { EventType, GameType, api } from '~/api'
 import { useGameStore } from '~/stores/game'
 
 const delay = Math.random() * 6 + 2
 let show_target = $ref(false)
 let start_time: number
+
 setTimeout(() => {
   show_target = true
   start_time = Date.now()
@@ -23,15 +24,10 @@ function clickHandler() {
     data = { failed: true, name: window.webxdc.selfName }
   }
 
-  window.webxdc.sendUpdate({
-    payload: {
-      eventType: EventType.PlayerResult,
-      data: {
-        data,
-        game: GameType.Reaction,
-      } as PlayerResultEventData,
-    },
-  }, 'Reaction result')
+  api.sendUpdate(EventType.PlayerResult, {
+    data,
+    game: GameType.Reaction,
+  } as PlayerResultEventData, 'Reaction result')
   router.push(`/games/${gameStore.currentGame}/conclusion`)
 }
 </script>

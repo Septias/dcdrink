@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type { PlayerResultEventData, ReactionResult } from '~/api'
-import { EventType, api } from '~/api'
+import { EventType, api, is_next_game_event_data } from '~/api'
+import { draw_random_game } from '~/random_game'
+import { useGameStore } from '~/stores/game'
 
 const results: ReactionResult[] = $ref([])
 
@@ -11,21 +13,34 @@ const ordered_results = computed(() =>
 
 api.add_event_listener((res) => {
   const { data } = res as PlayerResultEventData
-  console.log(data)
   results.push(data)
 }, EventType.PlayerResult)
-api.start_listening()
+
+function nextGame() {
+  const game = draw_random_game()
+  api.sendUpdate(EventType.NextGame, { game })
+}
+
+const gameStore = useGameStore()
+const router = useRouter()
+api.add_event_listener((data) => {
+  if (is_next_game_event_data(data)) {
+    gameStore.currentGame = data.game
+    api.stop_listening()
+    router.push(`/games/${data.game}/introduction`)
+  }
+}, EventType.NextGame)
+
+onMounted(() => api.start_listening())
 </script>
 
 <template lang="pug">
-.h-full.flex.flex-col.p-15.text-center
-  h1.text-5xl.font-bold.text-porange Conclusion!
-  .flex.flex-col.justify-center.items-center.grow
-    .flex.font-bold.text-2xl.justify-between.w-full
-      div
-        p.text-porange(v-for="result in ordered_results") {{result.name}}
-      div.flex.items-center.flex-col
-        template(v-for="result in ordered_results")
-          p.text-white.ml-2(v-if="!result.failed") {{result.time}}s
-          p.text-pred.ml-2.i-carbon-x(v-if="result.failed")
+Border(heading="Results!" @all-ready="nextGame")
+  .flex.font-bold.text-2xl.justify-between.w-full
+    div
+      p.text-porange(v-for="result in ordered_results") {{result.name}}
+    div.flex.items-center.flex-col
+      template(v-for="result in ordered_results")
+        p.text-white.ml-2(v-if="!result.failed") {{result.time}}s
+        p.text-pred.ml-2.i-carbon-x(v-if="result.failed")
 </template>

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { JoinEventData, StartGameEventData } from '~/api'
+import type { GameStartedEventData, JoinEventData } from '~/api'
 import { EventType, GameType, api, is_start_game_event } from '~/api'
 import { useGameStore } from '~/stores/game'
 
@@ -25,7 +25,7 @@ document.addEventListener('visibilitychange', vis_change)
 
 function startGame() {
   gameStore.king = window.webxdc.selfAddr
-  api.sendUpdate(EventType.GameStarted, { game: GameType.Reaction, king: window.webxdc.selfAddr } as StartGameEventData, 'Game Startet')
+  api.sendUpdate(EventType.GameStarted, { game: GameType.Reaction, king: window.webxdc.selfAddr } as GameStartedEventData, 'Game Startet')
 }
 
 onUnmounted(() => {
