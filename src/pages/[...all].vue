@@ -57,7 +57,7 @@ api.start_listening()
 .h-screen.flex.flex-col.justify-between.p-15
   h1.text-5xl.font-bold.text-center.text-porange Trinkspiele
   .flex.gap-2.justify-center.flex-wrap
-    .my-1.bg-red.rounded.text-background.font-bold.p-1.leading-none.text-3xl(v-for="player in players")
+    .my-1.bg-red.rounded.text-background.font-bold.p-1.leading-none.text-3xl.text-center(v-for="player in players")
         | {{player}}
 
   button.rounded-xl.bg-orange.p-4.text-5xl.font-bold.text-background(@click="startGame") Start
