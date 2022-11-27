@@ -9,7 +9,7 @@ function allReadyHandler() {
   router.push(`/games/${gameStore.currentGame}/game`)
 }
 
-onMounted(() => api.start_listening())
+api.start_listening()
 onUnmounted(() => api.stop_listening())
 </script>
 

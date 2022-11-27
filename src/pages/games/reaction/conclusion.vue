@@ -16,12 +16,15 @@ api.add_event_listener((res) => {
   results.push(data)
 }, EventType.PlayerResult)
 
+const gameStore = useGameStore()
+
 function nextGame() {
-  const game = draw_random_game()
-  api.sendUpdate(EventType.NextGame, { game })
+  if (gameStore.is_king) {
+    const game = draw_random_game()
+    api.sendUpdate(EventType.NextGame, { game })
+  }
 }
 
-const gameStore = useGameStore()
 const router = useRouter()
 api.add_event_listener((data) => {
   if (is_next_game_event_data(data)) {
@@ -31,16 +34,14 @@ api.add_event_listener((data) => {
   }
 }, EventType.NextGame)
 
-onMounted(() => api.start_listening())
+api.start_listening()
 </script>
 
 <template lang="pug">
 Border(heading="Results!" @all-ready="nextGame")
-  .flex.font-bold.text-2xl.justify-between.w-full
-    div
-      p.text-porange(v-for="result in ordered_results") {{result.name}}
-    div.flex.items-center.flex-col
-      template(v-for="result in ordered_results")
-        p.text-white.ml-2(v-if="!result.failed") {{result.time}}s
-        p.text-pred.ml-2.i-carbon-x(v-if="result.failed")
+  .flex.font-bold.text-2xl.justify-between.w-full.flex-col
+    .flex.justify-between.gap-2(v-for="result in ordered_results")
+      span.text-porange.overflow-hidden {{result.name}}
+      span.text-white.ml-2(v-if="!result.failed") {{result.time}}s
+      span.text-pred.ml-2.i-carbon-x(v-if="result.failed")
 </template>

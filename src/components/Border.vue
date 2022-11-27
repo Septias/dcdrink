@@ -22,7 +22,7 @@ function readyUp() {
 
 api.add_event_listener((_) => {
   ready_players += 1
-  if (ready_players >= gameStore.players) {
+  if (ready_players >= gameStore.player_count) {
     emit('allReady')
   }
 }, EventType.PlayerReady)

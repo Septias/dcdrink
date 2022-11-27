@@ -3,12 +3,14 @@ import type { Ref } from 'vue'
 import type { GameType } from '~/api'
 
 export const useGameStore = defineStore('config', () => {
-  const players = useStorage('player_count', 0)
+  const players = useStorage('players', [] as string[])
+  const player_count = computed(() => players.value.length)
   const currentGame: Ref<GameType | undefined> = useStorage('current_game', undefined)
   const king = ref('')
   const is_king = computed(() => king.value === window.webxdc.selfAddr)
   return {
     players,
+    player_count,
     currentGame,
     king,
     is_king,

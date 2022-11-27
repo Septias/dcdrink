@@ -4,6 +4,7 @@ export enum EventType {
   PlayerJoined,
   PlayerLeft,
   GameStarted,
+  GameEnded,
   PlayerReady,
   PlayerResult,
   NextGame,
@@ -72,12 +73,21 @@ function empty_listeners() {
     [EventType.PlayerReady]: [],
     [EventType.PlayerResult]: [],
     [EventType.NextGame]: [],
+    [EventType.GameEnded]: [],
   }
 }
 
 export class API {
   event_listeners: Record<EventType, ((data: PayloadData) => void)[]> = empty_listeners()
   last_serial = 0
+
+  constructor() {
+    this.last_serial = parseInt(localStorage.getItem('last_serial') || '0')
+  }
+
+  save() {
+    localStorage.setItem('last_serial', this.last_serial.toString())
+  }
 
   add_event_listener(cb: (payload: PayloadData) => void, event_type: EventType) {
     this.event_listeners[event_type].push(cb)
@@ -95,6 +105,33 @@ export class API {
   start_listening() {
     console.log('start listening from', this.last_serial)
     window.webxdc.setUpdateListener(this.handler.bind(this), this.last_serial)
+  }
+
+  catchup(): Promise<{ players: Set<string>; playing: boolean }> {
+    return new Promise((resolve) => {
+      const players = new Set() as Set<string>
+      let playing = false
+      window.webxdc.setUpdateListener((e) => {
+        if (e.payload.eventType === EventType.PlayerJoined) {
+          players.add(e.payload.data.name)
+        }
+        else if (e.payload.eventType === EventType.PlayerLeft) {
+          players.delete(e.payload.data.name)
+        }
+        else if (e.payload.eventType === EventType.GameStarted) {
+          playing = true
+        }
+        else if (e.payload.eventType === EventType.GameEnded) {
+          playing = false
+        }
+        if (e.max_serial === e.serial) {
+          console.log(e.max_serial)
+
+          this.last_serial = e.max_serial
+          resolve({ players, playing })
+        }
+      }, 0)
+    })
   }
 
   stop_listening() {

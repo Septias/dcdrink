@@ -1,19 +1,18 @@
 <script lang="ts" setup>
-import { api } from '~/api'
+import { EventType, api, is_next_game_event_data } from '~/api'
 import { useGameStore } from '~/stores/game'
+
 const gameStore = useGameStore()
 const router = useRouter()
-api.catchup().then(({ players, playing }) => {
-  console.log('catchup', players, playing)
 
-  if (playing) {
-    gameStore.players = Array.from(players)
-    // router.push('/join')
+api.add_event_listener((data) => {
+  if (is_next_game_event_data(data)) {
+    gameStore.currentGame = data.game
+    api.stop_listening()
+    router.push(`/games/${data.game}/introduction`)
   }
-  else {
-    router.push('/lobby')
-  }
-})
+}, EventType.NextGame)
+api.start_listening()
 </script>
 
 <template lang="pug">
