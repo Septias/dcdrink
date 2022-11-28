@@ -35,6 +35,6 @@ api.add_event_listener((_) => {
     slot
 
   .flex.justify-center.items-center.gap-2.flex-col
-    p.font-bold.text-white.text-2xl.tracking-wider {{ready_players}}/{{gameStore.players}}
+    p.font-bold.text-white.text-2xl.tracking-wider {{ready_players}}/{{gameStore.player_count}}
     button.rounded-xl.bg-porange.p-3.text-2xl.font-bold.text-background.grow(v-if="!ready" @click="readyUp") Got ya!
 </template>

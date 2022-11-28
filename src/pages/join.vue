@@ -16,6 +16,6 @@ api.start_listening()
 </script>
 
 <template lang="pug">
-.h-screen.flex.flex-col.justify-between.items-center
-  h1.text-5xl.font-bold.text-center.text-porange Recovering game state...
+.h-screen.flex.flex-col.justify-center.items-center.p-2
+  h1.text-2xl.font-bold.text-center.text-porange Waiting to join game...
 </template>

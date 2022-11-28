@@ -1,14 +1,8 @@
 <script setup lang="ts">
-// https://github.com/vueuse/head
-// you can use this to manipulate the document head in any components,
-
-import { storeToRefs } from 'pinia'
 import { RouterView } from 'vue-router'
-import type { JoinEventData } from './api'
 import { EventType, api } from './api'
 import { useGameStore } from './stores/game'
 
-// they will be rendered correctly in the html results with vite-ssg
 useHead({
   title: 'DcDrink',
   meta: [
@@ -31,11 +25,15 @@ document.addEventListener('keydown', (key) => {
     console.log('reset serial')
     api.last_serial = 0
   }
+  if (key.key === 'l') {
+    console.log('listeners: ', api.event_listeners)
+  }
 })
-const { players } = storeToRefs(useGameStore())
 
-api.add_event_listener(data => players.value.push((data as JoinEventData).name), EventType.PlayerJoined)
-api.add_event_listener(data => players.value.splice(players.value.indexOf((data as JoinEventData).name), 1), EventType.PlayerLeft)
+// TODO: fix late joining
+// const { players } = storeToRefs(useGameStore())
+// api.add_event_listener(data => players.value.push((data as JoinEventData).name), EventType.PlayerJoined)
+// api.add_event_listener(data => players.value.splice(players.value.indexOf((data as JoinEventData).name), 1), EventType.PlayerLeft)
 
 const gameStore = useGameStore()
 onUnmounted(() => {

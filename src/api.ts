@@ -93,6 +93,11 @@ export class API {
     this.event_listeners[event_type].push(cb)
   }
 
+  start_listening() {
+    console.log('start listening from', this.last_serial)
+    window.webxdc.setUpdateListener(this.handler.bind(this), this.last_serial)
+  }
+
   handler(update: ReceivedStatusUpdate<Payload>) {
     const { payload, serial } = update
     console.log(serial)
@@ -102,17 +107,15 @@ export class API {
     }
   }
 
-  start_listening() {
-    console.log('start listening from', this.last_serial)
-    window.webxdc.setUpdateListener(this.handler.bind(this), this.last_serial)
-  }
-
   catchup(): Promise<{ players: Set<string>; playing: boolean }> {
     return new Promise((resolve) => {
       const players = new Set() as Set<string>
       let playing = false
       window.webxdc.setUpdateListener((e) => {
+        console.log(e.serial, e.payload.eventType)
+
         if (e.payload.eventType === EventType.PlayerJoined) {
+          console.log('player joined', e.payload.data.name)
           players.add(e.payload.data.name)
         }
         else if (e.payload.eventType === EventType.PlayerLeft) {
@@ -125,12 +128,11 @@ export class API {
           playing = false
         }
         if (e.max_serial === e.serial) {
-          console.log(e.max_serial)
-
+          console.log('done: ', players, e.max_serial)
           this.last_serial = e.max_serial
           resolve({ players, playing })
         }
-      }, 0)
+      })
     })
   }
 
