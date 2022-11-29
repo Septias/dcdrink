@@ -8,12 +8,17 @@ export const useGameStore = defineStore('config', () => {
   const currentGame: Ref<GameType | undefined> = useStorage('current_game', undefined)
   const king = ref('')
   const is_king = computed(() => king.value === window.webxdc.selfAddr)
+  const random_player = () => {
+    return Array.from(players.value)[Math.floor(Math.random() * (players.value.size - 0.01))]
+  }
+
   return {
     players,
     player_count,
     currentGame,
     king,
     is_king,
+    random_player,
   }
 })
 

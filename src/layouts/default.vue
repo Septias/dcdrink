@@ -2,7 +2,7 @@
 main.flex.justify-center.items-center.h-screen
   div.max-size
     suspense
-      router-view
+      router-view(:key="$route.fullPath")
 </template>
 
 <style lang="sass">

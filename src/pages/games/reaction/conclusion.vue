@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import type { PlayerResultEventData, ReactionResult } from '~/api'
-import { EventType, api, is_next_game_event_data } from '~/api'
+import { EventType, api } from '~/api'
 import { draw_random_game } from '~/random_game'
 import { useGameStore } from '~/stores/game'
+import { register_next_game_handler } from '~/utility'
 
 const results: ReactionResult[] = $ref([])
 
@@ -21,19 +22,12 @@ const gameStore = useGameStore()
 function nextGame() {
   if (gameStore.is_king) {
     const game = draw_random_game()
-    api.sendUpdate(EventType.NextGame, { game })
+    api.sendUpdate(EventType.NextGame, game)
   }
 }
 
 const router = useRouter()
-api.add_event_listener((data) => {
-  if (is_next_game_event_data(data)) {
-    gameStore.currentGame = data.game
-    api.stop_listening()
-    router.push(`/games/${data.game}/introduction`)
-  }
-}, EventType.NextGame)
-
+register_next_game_handler(router, () => { api.stop_listening() })
 api.start_listening()
 </script>
 

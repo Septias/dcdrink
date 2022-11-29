@@ -12,7 +12,10 @@ export enum EventType {
 
 export enum GameType {
   Reaction = 'reaction',
+  Category = 'category',
 }
+
+export const cards = [GameType.Category]
 
 export interface ReactionResult {
   failed: boolean
@@ -46,6 +49,7 @@ export interface PlayerResultEventData {
 
 export interface NextGameEventData {
   game: GameType
+  data?: any
 }
 
 export function is_next_game_event_data(data: any): data is GameStartedEventData | NextGameEventData {
