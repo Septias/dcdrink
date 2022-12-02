@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { GameStartedEventData, JoinEventData } from '~/api'
-import { EventType, GameType, api, is_start_game_event } from '~/api'
+import type { GameStartedEvent, JoinEvent } from '~/api'
+import { EventType, GameType, api } from '~/api'
 import { useGameStore } from '~/stores/game'
 
 const gameStore = useGameStore()
@@ -8,10 +8,10 @@ const router = useRouter()
 
 function startGame() {
   gameStore.king = window.webxdc.selfAddr
-  api.sendUpdate(EventType.GameStarted, { game: GameType.Reaction, king: window.webxdc.selfAddr } as GameStartedEventData, 'Game Startet')
+  api.sendUpdate({ type: EventType.GameStarted, game: GameType.Reaction, king: window.webxdc.selfAddr }, 'Game Started')
 }
 
-api.sendUpdate(EventType.PlayerJoined, { name: window.webxdc.selfName }, 'Player joined')
+api.sendUpdate({ type: EventType.PlayerJoined, name: window.webxdc.selfName }, 'Player joined')
 
 // temporary fix
 await new Promise(resolve => setTimeout(() => resolve(true), 250))
@@ -24,16 +24,15 @@ if (playing) {
 }
 
 // listeners
-api.add_event_listener((data) => {
-  if (is_start_game_event(data)) {
-    gameStore.king = data.king
-    gameStore.currentGame = data.game
-    router.push(`/games/${data.game}/introduction`)
-  }
-}, EventType.GameStarted)
-api.add_event_listener((data) => {
-  gameStore.players.add((data as JoinEventData).name)
-}, EventType.PlayerJoined)
+api.add_event_listener(EventType.GameStarted, (data: GameStartedEvent) => {
+  gameStore.king = data.king
+  gameStore.currentGame = data.game
+  router.push(`/games/${data.game}/introduction`)
+})
+
+api.add_event_listener(EventType.PlayerJoined, (data: JoinEvent) => {
+  gameStore.players.add(data.name)
+})
 
 api.start_listening()
 </script>

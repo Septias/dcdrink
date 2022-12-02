@@ -1,18 +1,18 @@
-import type { NextGameEventData } from './api'
-import { GameType } from './api'
+import type { NextGameEvent } from './api'
+import { EventType, GameType } from './api'
 import { useGameStore } from './stores/game'
 
 const gameStore = useGameStore()
 
-function createForGameType(game: GameType) {
-  return () => { return { game } }
+function createForGameType(game: GameType): () => NextGameEvent {
+  return () => { return { game, type: EventType.NextGame } }
 }
 
-function cardGenerator() {
-  return { game: GameType.Category, data: { player: gameStore.random_player() } }
+function cardGenerator(): NextGameEvent {
+  return { type: EventType.NextGame, game: GameType.Category, data: { player: gameStore.random_player() } }
 }
 
-const gameConstructors: (() => NextGameEventData)[] = [createForGameType(GameType.Reaction), cardGenerator]
+const gameConstructors: (() => NextGameEvent)[] = [createForGameType(GameType.Reaction), cardGenerator]
 
 export function draw_random_game() {
   return gameConstructors[Math.floor(Math.random() * (gameConstructors.length - 0.01))]()

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { PlayerResultEventData, ReactionResult } from '~/api'
-import { EventType, GameType, api } from '~/api'
+import type { ReactionResultEvent } from '~/api'
+import { EventType, api } from '~/api'
 import { useGameStore } from '~/stores/game'
 
 const delay = Math.random() * 6 + 2
@@ -16,18 +16,15 @@ const router = useRouter()
 const gameStore = useGameStore()
 
 function clickHandler() {
-  let data: ReactionResult
+  let event: ReactionResultEvent
   if (show_target) {
-    data = { failed: false, time: Date.now() - start_time, name: window.webxdc.selfName }
+    event = { type: EventType.ReactionResult, failed: false, time: Date.now() - start_time, name: window.webxdc.selfName }
   }
   else {
-    data = { failed: true, name: window.webxdc.selfName }
+    event = { type: EventType.ReactionResult, failed: true, name: window.webxdc.selfName }
   }
 
-  api.sendUpdate(EventType.PlayerResult, {
-    data,
-    game: GameType.Reaction,
-  } as PlayerResultEventData, 'Reaction result')
+  api.sendUpdate(event, 'Reaction result')
   router.push(`/games/${gameStore.currentGame}/conclusion`)
 }
 </script>

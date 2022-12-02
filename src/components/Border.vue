@@ -17,15 +17,15 @@ const gameStore = useGameStore()
 
 function readyUp() {
   ready = true
-  api.sendUpdate(EventType.PlayerReady)
+  api.sendUpdate({ type: EventType.PlayerReady })
 }
 
-api.add_event_listener((_) => {
+api.add_event_listener(EventType.PlayerReady, (_) => {
   ready_players += 1
   if (ready_players >= gameStore.player_count) {
     emit('allReady')
   }
-}, EventType.PlayerReady)
+})
 </script>
 
 <template lang="pug">

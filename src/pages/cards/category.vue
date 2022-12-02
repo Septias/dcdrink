@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { EventType, api } from '~/api'
+import { api } from '~/api'
 import { draw_random_game } from '~/random_game'
 import { useGameStore } from '~/stores/game'
 import { register_next_game_handler } from '~/utility'
@@ -9,7 +9,7 @@ const router = useRouter()
 
 function handle_ready() {
   if (gameStore.is_king) {
-    api.sendUpdate(EventType.NextGame, draw_random_game(), 'starting next game')
+    api.sendUpdate(draw_random_game(), 'starting next game')
   }
 }
 register_next_game_handler(router, () => { api.stop_listening() })

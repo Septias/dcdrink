@@ -26,7 +26,7 @@ document.addEventListener('keydown', (key) => {
     api.last_serial = 0
   }
   if (key.key === 'l') {
-    console.log('listeners: ', api.event_listeners)
+    console.log('listeners: ', api.clients)
   }
 })
 
@@ -38,9 +38,9 @@ document.addEventListener('keydown', (key) => {
 const gameStore = useGameStore()
 onUnmounted(() => {
   api.save()
-  api.sendUpdate(EventType.PlayerLeft, { name: window.webxdc.selfName }, '')
+  api.sendUpdate({ type: EventType.PlayerLeft, name: window.webxdc.selfName }, '')
   if (gameStore.is_king) {
-    api.sendUpdate(EventType.GameEnded, undefined, 'Game Ended')
+    api.sendUpdate({ type: EventType.GameEnded }, 'Game Ended')
   }
 })
 </script>

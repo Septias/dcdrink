@@ -1,28 +1,27 @@
 <script lang="ts" setup>
-import type { PlayerResultEventData, ReactionResult } from '~/api'
+import type { ReactionResultEvent } from '~/api'
 import { EventType, api } from '~/api'
 import { draw_random_game } from '~/random_game'
 import { useGameStore } from '~/stores/game'
 import { register_next_game_handler } from '~/utility'
 
-const results: ReactionResult[] = $ref([])
+const results: ReactionResultEvent[] = $ref([])
 
 const ordered_results = computed(() =>
   results.map((elem) => { return { ...elem, time: (elem.time || 100000000) / 1000 } })
     .sort((a, b) => a.time - b.time),
 )
 
-api.add_event_listener((res) => {
-  const { data } = res as PlayerResultEventData
-  results.push(data)
-}, EventType.PlayerResult)
+api.add_event_listener(EventType.ReactionResult, (res: ReactionResultEvent) => {
+  results.push(res)
+})
 
 const gameStore = useGameStore()
 
 function nextGame() {
   if (gameStore.is_king) {
     const game = draw_random_game()
-    api.sendUpdate(EventType.NextGame, game)
+    api.sendUpdate(game)
   }
 }
 

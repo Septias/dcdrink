@@ -1,17 +1,16 @@
 <script lang="ts" setup>
-import { EventType, api, is_next_game_event_data } from '~/api'
+import type { NextGameEvent } from '~/api'
+import { EventType, api } from '~/api'
 import { useGameStore } from '~/stores/game'
 
 const gameStore = useGameStore()
 const router = useRouter()
 
-api.add_event_listener((data) => {
-  if (is_next_game_event_data(data)) {
-    gameStore.currentGame = data.game
-    api.stop_listening()
-    router.push(`/games/${data.game}/introduction`)
-  }
-}, EventType.NextGame)
+api.add_event_listener(EventType.NextGame, (data: NextGameEvent) => {
+  gameStore.currentGame = data.game
+  api.stop_listening()
+  router.push(`/games/${data.game}/introduction`)
+})
 api.start_listening()
 </script>
 

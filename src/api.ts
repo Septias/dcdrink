@@ -6,7 +6,7 @@ export enum EventType {
   GameStarted,
   GameEnded,
   PlayerReady,
-  PlayerResult,
+  ReactionResult,
   NextGame,
 }
 
@@ -17,72 +17,73 @@ export enum GameType {
 
 export const cards = [GameType.Category]
 
-export interface ReactionResult {
+export interface JoinEvent {
+  type: EventType.PlayerJoined
+  name: string
+}
+
+export interface LeaveEvent {
+  type: EventType.PlayerLeft
+  name: string
+}
+
+export interface GameStartedEvent {
+  type: EventType.GameStarted
+  game: GameType
+  king: string
+}
+
+export interface NextGameEvent {
+  type: EventType.NextGame
+  game: GameType
+  data?: any
+}
+export interface ReactionResultEvent {
+  type: EventType.ReactionResult
   failed: boolean
   time?: number
   name: string
 }
 
-type PlayerResult = ReactionResult
-
-export interface JoinEventData {
-  name: string
+export interface PlayerReadyEvent {
+  type: EventType.PlayerReady
 }
 
-export interface LeaveEventData {
-  name: string
+export interface GameEndedEvent {
+  type: EventType.GameEnded
 }
 
-export interface GameStartedEventData {
-  game: GameType
-  king: string
-}
-
-export function is_start_game_event(data: any): data is GameStartedEventData {
-  return data.game && data.king
-}
-
-export interface PlayerResultEventData {
-  game: GameType
-  data: PlayerResult
-}
-
-export interface NextGameEventData {
-  game: GameType
-  data?: any
-}
-
-export function is_next_game_event_data(data: any): data is GameStartedEventData | NextGameEventData {
-  return data.game
-}
-
-type PayloadData = JoinEventData | LeaveEventData | GameStartedEventData | PlayerResultEventData | NextGameEventData | undefined
-
-interface Payload {
-  eventType: EventType
-  data: PayloadData
-}
-
-interface DatedPayload {
-  eventType: EventType
-  data: PayloadData
-  ts: number
-}
+type Payload = JoinEvent | LeaveEvent | GameStartedEvent | NextGameEvent | ReactionResultEvent | PlayerReadyEvent | GameEndedEvent
 
 function empty_listeners() {
   return {
-    [EventType.PlayerJoined]: [],
-    [EventType.PlayerLeft]: [],
-    [EventType.GameStarted]: [],
-    [EventType.PlayerReady]: [],
-    [EventType.PlayerResult]: [],
-    [EventType.NextGame]: [],
-    [EventType.GameEnded]: [],
+    [EventType.PlayerJoined]: [] as ((data: JoinEvent) => void)[],
+    [EventType.PlayerLeft]: [] as ((data: LeaveEvent) => void)[],
+    [EventType.GameStarted]: [] as ((data: GameStartedEvent) => void)[],
+    [EventType.PlayerReady]: [] as ((data: PlayerReadyEvent) => void)[],
+    [EventType.NextGame]: [] as ((data: NextGameEvent) => void)[],
+    [EventType.GameEnded]: [] as ((data: GameEndedEvent) => void)[],
+    [EventType.ReactionResult]: [] as ((data: ReactionResultEvent) => void)[],
+  }
+}
+
+class Client {
+  public event_listeners = empty_listeners()
+
+  add_event_listener(event_type: EventType, cb: (event: JoinEvent) => void): void
+  add_event_listener(event_type: EventType, cb: (event: LeaveEvent) => void): void
+  add_event_listener(event_type: EventType, cb: (event: GameStartedEvent) => void): void
+  add_event_listener(event_type: EventType, cb: (event: NextGameEvent) => void): void
+  add_event_listener(event_type: EventType, cb: (event: ReactionResultEvent) => void): void
+  add_event_listener(event_type: EventType, cb: (event: PlayerReadyEvent) => void): void
+  add_event_listener(event_type: EventType, cb: (event: GameEndedEvent) => void): void
+  add_event_listener(event_type: EventType, cb: (event: any) => void): void {
+    this.event_listeners[event_type].push(cb)
   }
 }
 
 export class API {
-  event_listeners: Record<EventType, ((data: PayloadData) => void)[]> = empty_listeners()
+  clients: { [key: string]: Client } = {}
   last_serial = 0
 
   constructor() {
@@ -93,24 +94,26 @@ export class API {
     localStorage.setItem('last_serial', this.last_serial.toString())
   }
 
-  add_event_listener(cb: (payload: PayloadData) => void, event_type: EventType) {
-    this.event_listeners[event_type].push(cb)
+  addClient(name: string, client: Client) {
+    this.clients[name] = client
   }
 
-  start_listening() {
-    console.log('start listening from', this.last_serial)
-    window.webxdc.setUpdateListener(this.handler.bind(this), this.last_serial)
+  removeClient(name: string) {
+    delete this.clients[name]
   }
 
   handler(update: ReceivedStatusUpdate<Payload>) {
     const { payload, serial } = update
     console.log(serial)
     this.last_serial = serial
-    for (const listener of this.event_listeners[payload.eventType]) {
-      listener(payload.data)
+    for (const client of Object.values(this.clients)) {
+      for (const listener of client.event_listeners[payload.type]) {
+        (listener as any)(payload as any)
+      }
     }
   }
 
+  // try to catch up on state at the startup of the app
   catchup(): Promise<{ players: Set<string>; playing: boolean }> {
     return new Promise((resolve) => {
       const players = new Set() as Set<string>
@@ -140,19 +143,21 @@ export class API {
     })
   }
 
+  start_listening() {
+    console.log('start listening from', this.last_serial)
+    window.webxdc.setUpdateListener(this.handler.bind(this), this.last_serial)
+  }
+
   stop_listening() {
     console.log('stop listening')
-    this.event_listeners = empty_listeners()
     window.webxdc.setUpdateListener(e => console.log('missed event: ', e), this.last_serial)
   }
 
-  sendUpdate(eventType: EventType, data?: PayloadData, msg = '') {
+  sendUpdate(payload: Payload, msg = '') {
     window.webxdc.sendUpdate({
       payload: {
-        eventType,
-        data,
-        ts: Date.now(),
-      } as DatedPayload,
+        payload,
+      },
     }, msg)
   }
 }
